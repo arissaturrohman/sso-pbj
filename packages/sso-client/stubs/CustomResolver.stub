@@ -1,0 +1,37 @@
+<?php
+
+namespace App\Sso;
+
+use Demak\SsoClient\Contracts\SsoUserResolver;
+use Illuminate\Contracts\Auth\Authenticatable;
+
+/**
+ * Contoh resolver kustom — sesuaikan dengan skema user aplikasi ini.
+ * Aktifkan dengan: SSO_RESOLVER=App\Sso\CustomResolver di .env
+ */
+class CustomResolver implements SsoUserResolver
+{
+    public function resolve(array $profile): ?Authenticatable
+    {
+        // Ganti dengan logika aplikasi: field pencocokan, cek status, dll.
+        if (!empty($profile['nip'])) {
+            $user = \App\Models\User::where('nip', $profile['nip'])->first();
+        } else {
+            $email = mb_strtolower(trim((string) ($profile['email'] ?? '')));
+
+            if ($email === '') {
+                return null;
+            }
+
+            $user = \App\Models\User::whereRaw('LOWER(email) = ?', [$email])->first();
+        }
+
+        if (!$user) {
+            return null;
+        }
+
+        $status = $user->status ?? null;
+
+        return ($status === 'active' || $status === 1 || $status === true) ? $user : null;
+    }
+}
