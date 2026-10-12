@@ -1,89 +1,125 @@
-# pemkab-demak/sso-client
+# Panduan Integrasi Klien SSO (`pemkab-demak/sso-client`)
 
-Klien SSO OAuth2 (Authorization Code + PKCE) untuk aplikasi-aplikasi Pemkab Demak.
-Alurnya identik dengan yang sudah teruji di **rup-app**: client men-generate state + PKCE
-di session-nya sendiri, server SSO (`sso-pbj`) skip-consent untuk client aktif, callback
-menukar code → ambil profil `/api/user` → cocokkan user lokal → `Auth::login()`.
+Repositori ini adalah paket Composer privat/publik untuk mengintegrasikan aplikasi client Pemkab Demak dengan server pusat SSO (**sso-pbj**). Paket ini menggunakan alur **OAuth2 Authorization Code + PKCE** sehingga aman, tidak membutuhkan *client secret* yang diekspos di aplikasi publik, dan mendukung fitur **Single Sign-On (SSO)** serta **Auto-Redirect diam-diam**.
 
-## 1. Pasang di aplikasi baru (5 menit)
+---
 
+## 1. Menghubungkan Repositori Git ke Aplikasi Client
+
+Karena repositori ini sudah diunggah ke GitHub, aplikasi client Anda harus diberi tahu cara mengunduhnya.
+
+Buka file `composer.json` di aplikasi client Anda (misalnya `rup-app` atau aplikasi lainnya), lalu tambahkan blok `"repositories"` di bagian atas/bawah, dan tambahkan `"pemkab-demak/sso-client": "^1.0"` di dalam `"require"`:
+
+```json
+{
+    "repositories": [
+        {
+            "type": "vcs",
+            "url": "https://github.com/arissaturrohman/sso-pbj.git"
+        }
+    ],
+    "require": {
+        "php": "^8.2",
+        "laravel/framework": "^11.0|^12.0",
+        "pemkab-demak/sso-client": "^1.0"
+    }
+}
+```
+*(Catatan: Ganti URL di atas dengan URL repository GitHub Anda yang sebenarnya).*
+
+Setelah itu, jalankan perintah ini di terminal root aplikasi client Anda:
 ```bash
-composer require pemkab-demak/sso-client
+composer update pemkab-demak/sso-client
 ```
 
-Tambahkan ke `.env` aplikasi (minta Client ID ke admin SSO setelah daftarkan aplikasi
-di `sso.apps` → Kelola Aplikasi):
+---
+
+## 2. Konfigurasi Environment (`.env`)
+
+Tambahkan baris berikut ke file `.env` di aplikasi client Anda:
 
 ```env
 SSO_BASE_URL=http://sso-pbj.test
-SSO_CLIENT_ID=<client-id-dari-sso>
-SSO_CLIENT_SECRET=<boleh-kosong-untuk-public-client>
-SSO_REDIRECT_URI=http://aplikasi-baru.test/sso/callback
+SSO_CLIENT_ID=<dapatkan-client-id-dari-dashboard-sso>
+SSO_CLIENT_SECRET=
+SSO_REDIRECT_URI=http://nama-aplikasi-client.test/sso/callback
+```
+* **SSO_BASE_URL**: Alamat server pusat SSO Anda (misal `http://sso-pbj.test` atau URL production).
+* **SSO_CLIENT_ID**: ID unik yang didapat setelah mendaftarkan aplikasi di menu Admin SSO (`/apps`).
+* **SSO_REDIRECT_URI**: URL callback aplikasi Anda (wajib sama persis dengan yang didaftarkan di server SSO).
+
+---
+
+## 3. Pendaftaran Aplikasi di Server SSO (`sso-pbj`)
+
+Sebelum aplikasi client dapat mengenali user, aplikasi tersebut harus didaftarkan di server pusat SSO:
+1. Login ke server pusat SSO (`sso-pbj.test/login`).
+2. Masuk ke menu **Aplikasi Saya** (`/apps`) atau **Admin > Aplikasi**.
+3. Klik **Tambah Aplikasi** / daftarkan aplikasi baru:
+   - **Nama Aplikasi**: Nama yang mudah dibaca (mis. *Aplikasi E-Monev*).
+   - **Slug**: Nama singkat tanpa spasi (mis. *e-monev*).
+   - **Redirect URI**: `http://nama-aplikasi-client.test/sso/callback`.
+4. Simpan. Server SSO akan men-generate **Client ID** otomatis.
+5. Salin Client ID tersebut dan masukkan ke `.env` aplikasi client (Langkah No. 2).
+
+*Catatan: Karena sistem sudah diset untuk `skipsAuthorization`, user yang membuka aplikasi client **tidak akan pernah lagi** melihat halaman konfirmasi "Izinkan akses".*
+
+---
+
+## 4. Memasang Tombol & Auto-Redirect di Halaman Login Client
+
+Paket ini sudah menyediakan komponen Blade siap pakai. Buka file tampilan login aplikasi client Anda (biasanya `resources/views/auth/login.blade.php`), lalu pasang:
+
+### A. Tombol Login SSO
+```blade
+<x-sso-client::sso-button />
 ```
 
-Selesai — route ini langsung aktif tanpa controller tambahan:
-
-| Method | URL | Nama | Fungsi |
-|---|---|---|---|
-| GET | `/sso/redirect` | `sso.redirect` | Mulai login SSO (tombol Login) |
-| GET | `/sso/auto-login` | `sso.auto-login` | Alias, dipakai auto-redirect |
-| GET | `/sso/callback` | `sso.callback` | Terima code, login lokal |
-
-Pasang dua komponen Blade di halaman login:
+### B. Auto-Redirect Diam-diam (Opsional tapi Direkomendasikan)
+Komponen ini akan otomatis mengecek sesi SSO. Jika user sudah login di SSO, halaman login client akan menampilkan animasi loading singkat (±1,5 detik) lalu langsung melemparkan user ke dalam aplikasi **tanpa perlu klik tombol apa pun**. Di dalamnya sudah tersedia tombol **"Batal — login manual"** sebagai *fallback* jika server SSO bermasalah.
 
 ```blade
-{{-- tombol SSO --}}
-<x-sso-client::sso-button />
-
-{{-- overlay auto-redirect ±1,5 dtk + tombol Batal (fallback manual) --}}
 <x-sso-client::auto-redirect />
 ```
 
-Login dengan SSO berhasil → event `Demak\SsoClient\Events\SsoLoginSucceeded`
-dipicu (pasang listener untuk `last_login_at` / log aktivitas kustom).
-Gagal → kembali ke route `login` dengan session `error` (pesan ramah).
+Contoh penempatan di `login.blade.php`:
+```html
+<form method="POST" action="{{ route('login') }}">
+    <!-- Form login manual biasa -->
+</form>
 
-## 2. Kalau skema user-nya berbeda
+<hr class="my-3">
 
-Buat resolver sendiri dari stub, lalu arahkan env:
-
-```bash
-php artisan vendor:publish --tag=sso-client-resolver
+{{-- Tombol dan Auto-Redirect SSO --}}
+<x-sso-client::sso-button />
+<x-sso-client::auto-redirect />
 ```
 
-```env
-SSO_RESOLVER=App\Sso\CustomResolver
-```
+---
 
-Contoh ada di `stubs/CustomResolver.stub`.
+## 5. Kustomisasi Resolver User (Jika Skema Database Berbeda)
 
-## 3. Pengaturan opsional (.env)
+Secara default, package ini mencocokkan user berdasarkan **NIP** (prioritas pertama) atau **Email** (case-insensitive) pada model `App\Models\User`, dan memastikan kolom `status` bernilai aktif (`active`, `1`, atau `true`).
 
-| Key | Default | Keterangan |
-|---|---|---|
-| `SSO_SCOPE` | `user:read` | Scope OAuth |
-| `SSO_USER_API` | `/api/user` | Endpoint profil di server SSO |
-| `SSO_TIMEOUT` | `15` | Timeout HTTP (detik) |
-| `SSO_LOGIN_ROUTE` | `login` | Route login manual (fallback) |
-| `SSO_HOME_ROUTE` | `home` | Tujuan setelah login SSO sukses |
-| `SSO_USER_MODEL` | `App\Models\User` | Model user lokal |
-| `SSO_CLIENT_ROUTES` | `true` | `false` = pakai route/controller sendiri |
+Jika aplikasi Anda menggunakan struktur tabel user yang berbeda, Anda bisa membuat resolver kustom:
+1. Publish template resolver bawaan:
+   ```bash
+   php artisan vendor:publish --tag=sso-client-resolver
+   ```
+   Perintah ini akan membuat file di `app/Sso/CustomResolver.php`.
+2. Sesuaikan logika pencarian user di dalam method `resolve(array $profile)` di file tersebut.
+3. Daftarkan di `.env` aplikasi client:
+   ```env
+   SSO_RESOLVER=App\Sso\CustomResolver
+   ```
 
-Konfigurasi lengkap bisa di-publish: `php artisan vendor:publish --tag=sso-client-config`.
+---
 
-## 4. Migrasi rup-app (sudah jalan, tidak wajib)
+## 6. Route Otomatis yang Disediakan Paket
 
-`rup-app` tetap memakai `SsoController`-nya sendiri — tidak perlu diubah, karena
-package membaca fallback `config('services.sso.*')` yang sama. Kalau suatu saat mau
-beralih: set `SSO_HOME_ROUTE=admin.dashboard` di `.env` rup-app (tanpa buka file
-lain), hapus route `sso.*` + `SsoController` lama, install package ini.
-Catat: log aktivitas `LogsActivity` dan overlay kustom rup-app ikut terhapus —
-pindahkan dulu ke listener `SsoLoginSucceeded` bila masih dibutuhkan.
+Paket ini secara otomatis mendaftarkan 3 route dengan prefix `/sso`:
+* `GET /sso/redirect` (Nama: `sso.redirect`) — Mengarahkan user ke halaman login SSO.
+* `GET /sso/auto-login` (Nama: `sso.auto-login`) — Alias dari redirect (dipakai oleh komponen auto-redirect).
+* `GET /sso/callback` (Nama: `sso.callback`) — Menerima kode otorisasi, menukar dengan token, dan membuat sesi login lokal.
 
-## 5. Mendaftarkan aplikasi baru di server SSO
-
-1. Login `sso-pbj.test` → **Aplikasi Saya** (`/apps`).
-2. **Kelola Aplikasi** → Tambah: nama, slug, `redirect_uri` = `https://aplikasi-baru.test/sso/callback`, status aktif.
-3. Salin **Client ID** yang dihasilkan ke `.env` aplikasi baru.
-4. Aplikasi otomatis muncul sebagai kartu di `/apps`; tombol **Buka Aplikasi**
-   (`target=_blank`) langsung login tanpa password/consent.
+*(Jika aplikasi Anda sudah memiliki controller SSO sendiri — seperti rup-app — Anda bisa menonaktifkan route otomatis ini dengan memberi `SSO_CLIENT_ROUTES=false` di `.env`)*.
