@@ -10,7 +10,7 @@
     <meta name="csrf-token" content="{{ csrf_token() }}">
 
     <title>
-        @yield('title', 'SSO Demak')
+        @yield('title', 'SSO PBJ Demak')
     </title>
 
     {{-- Bootstrap --}}
@@ -326,7 +326,7 @@
             {{-- Brand --}}
             <a href="{{ auth()->check() ? route('dashboard') : route('login') }}" class="navbar-brand fw-bold mb-0">
                 <i class="bi bi-shield-lock-fill me-1"></i>
-                <span class="d-none d-sm-inline">SSO DEMAK</span>
+                <span class="d-none d-sm-inline">SSO PBJ DEMAK</span>
                 <span class="d-inline d-sm-none">SSO</span>
             </a>
 
@@ -417,7 +417,7 @@
 
                     </nav>
 
-
+                    @can('applications.view')
                     <div class="mt-4 mb-3">
 
                         <small class="text-uppercase text-muted fw-bold">
@@ -425,6 +425,7 @@
                         </small>
 
                     </div>
+                    @endcan
 
                     <nav class="nav flex-column">
 
@@ -467,7 +468,7 @@
                     <div class="mt-4 pt-3 border-top">
 
                         <small class="text-muted">
-                            SSO Demak
+                            SSO PBJ Demak
                         </small>
 
                         <br>

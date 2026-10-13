@@ -15,7 +15,7 @@ Buka file `composer.json` di aplikasi client Anda (misalnya `rup-app` atau aplik
     "repositories": [
         {
             "type": "vcs",
-            "url": "https://github.com/arissaturrohman/sso-pbj.git"
+            "url": "https://github.com/arissaturrohman/sso-client.git"
         }
     ],
     "require": {

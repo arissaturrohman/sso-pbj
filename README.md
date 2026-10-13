@@ -94,7 +94,7 @@ Edit `composer.json` aplikasi client, tambahkan repository + require:
 "repositories": [
     {
         "type": "vcs",
-        "url": "https://github.com/arissaturrohman/sso-pbj.git"
+        "url": "https://github.com/arissaturrohman/sso-client.git"
     }
 ],
 "require": {
@@ -342,7 +342,7 @@ Buka `composer.json` di aplikasi client baru (misal `e-monev-app`), tambahkan bl
     "repositories": [
         {
             "type": "vcs",
-            "url": "https://github.com/arissaturrohman/sso-pbj.git"
+            "url": "https://github.com/arissaturrohman/sso-client.git"
         }
     ],
     "require": {

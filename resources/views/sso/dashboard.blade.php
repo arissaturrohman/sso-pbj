@@ -15,10 +15,12 @@
             </p>
         </div>
 
+        @can('applications.view')
         <a href="{{ route('admin.applications.index') }}" class="btn btn-outline-primary btn-sm">
             <i class="bi bi-gear me-1"></i>
             Kelola Aplikasi
         </a>
+        @endcan
     </div>
 
     @if ($applications->isEmpty())
@@ -86,7 +88,7 @@
                                 </button>
                                 @if (!$app->status)
                                     <small class="text-warning-emphasis d-block text-center mt-2">
-                                        Aplikasi ini sedang dinonaktifkan. Aktifkan dulu di Kelola Aplikasi.
+                                        Aplikasi ini sedang dinonaktifkan.
                                     </small>
                                 @endif
                             @endif
