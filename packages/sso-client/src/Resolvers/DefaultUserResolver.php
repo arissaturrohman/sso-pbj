@@ -15,26 +15,25 @@ class DefaultUserResolver implements SsoUserResolver
             return null;
         }
 
-        // NIP diprioritaskan; email dipakai kalau profil tidak bawa NIP.
-        if (!empty($profile['nip'])) {
-            $user = $model::where('nip', $profile['nip'])->first();
-        } else {
-            $email = mb_strtolower(trim((string) ($profile['email'] ?? '')));
+        $nip = trim((string) ($profile['nip'] ?? ''));
+        $email = mb_strtolower(trim((string) ($profile['email'] ?? '')));
 
-            if ($email === '') {
-                return null;
-            }
-
+        // Prioritaskan NIP.
+        if ($nip !== '') {
+            $user = $model::where('nip', $nip)->first();
+        } elseif ($email !== '') {
             $user = $model::whereRaw('LOWER(email) = ?', [$email])->first();
+        } else {
+            return null;
         }
 
         if (!$user) {
             return null;
         }
 
-        // Terima status 'active' (string) maupun true/1 (boolean).
-        $status = $user->status ?? null;
-        $active = $status === 'active' || $status === 1 || $status === true;
+        $status = strtolower(trim((string) ($user->status ?? '')));
+
+        $active = in_array($status, ['aktif', 'active', '1', 'true'], true);
 
         return $active ? $user : null;
     }

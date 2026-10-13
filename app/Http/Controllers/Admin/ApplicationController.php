@@ -84,6 +84,9 @@ class ApplicationController extends Controller
 
     public function edit(Application $application)
     {
+        // Preload relasi passportClient agar tidak N+1 query di view
+        $application->load('passportClient');
+
         return view(
             'admin.applications.edit',
             compact('application')
@@ -126,13 +129,35 @@ class ApplicationController extends Controller
             ],
         ]);
 
-        $application->update([
-            'name' => $validated['name'],
-            'slug' => $validated['slug'],
-            'description' => $validated['description'] ?? null,
-            'redirect_uri' => $validated['redirect_uri'],
-            'status' => $validated['status'],
-        ]);
+        DB::transaction(function () use ($validated, $application) {
+
+            $application->update([
+                'name' => $validated['name'],
+                'slug' => $validated['slug'],
+                'description' => $validated['description'] ?? null,
+                'redirect_uri' => $validated['redirect_uri'],
+                'status' => $validated['status'],
+            ]);
+
+            /*
+            |--------------------------------------------------------------------------
+            | Sinkronkan perubahan ke OAuth Client Passport
+            |--------------------------------------------------------------------------
+            |
+            | Tabel applications dan oauth_clients menyimpan nama + redirect.
+            | Jika hanya salah satu yang diubah, validasi redirect_uri di
+            | server OAuth akan menolak callback aplikasi client.
+            |
+            */
+
+            if ($application->passportClient) {
+                app(ClientRepository::class)->update(
+                    $application->passportClient,
+                    $validated['name'],
+                    [$validated['redirect_uri']],
+                );
+            }
+        });
 
         return redirect()
             ->route('admin.applications.index')
