@@ -129,6 +129,54 @@
                         </div>
                     </div>
 
+                    <div class="mb-3">
+                        <label for="access_type" class="form-label">
+                            Jenis Akses <span class="text-danger">*</span>
+                        </label>
+
+                        <select name="access_type" id="access_type"
+                            class="form-select @error('access_type') is-invalid @enderror" required>
+                            <option value="">-- Pilih Jenis Akses --</option>
+
+                            <option value="all_users" {{ old('access_type') === 'all_users' ? 'selected' : '' }}>
+                                Semua Pengguna SSO
+                            </option>
+
+                            <option value="pbj_only" {{ old('access_type') === 'pbj_only' ? 'selected' : '' }}>
+                                Khusus Pegawai PBJ
+                            </option>
+                        </select>
+
+                        @error('access_type')
+                            <div class="invalid-feedback">{{ $message }}</div>
+                        @enderror
+
+                        <small class="text-muted">
+                            Tentukan siapa yang boleh mengakses aplikasi ini melalui SSO.
+                        </small>
+                    </div>
+
+                    <div class="mb-3" id="user-assignment-section" style="display: none;">
+                        <label for="assigned_users" class="form-label">
+                            Pengguna yang Diberi Akses
+                        </label>
+
+                        <input type="text" id="userSearch" class="form-control mb-2" placeholder="Cari pengguna berdasarkan nama atau email...">
+
+                        <div class="border rounded p-3" style="max-height: 250px; overflow-y: auto;">
+                            @foreach($users as $user)
+                                <div class="form-check">
+                                    <input class="form-check-input user-checkbox" type="checkbox" name="assigned_users[]"
+                                           value="{{ $user->id }}" id="user_{{ $user->id }}"
+                                           {{ in_array($user->id, old('assigned_users', [])) ? 'checked' : '' }}>
+                                    <label class="form-check-label" for="user_{{ $user->id }}">
+                                        {{ $user->name }} <span class="text-muted small">({{ $user->email }})</span>
+                                    </label>
+                                </div>
+                            @endforeach
+                        </div>
+                    </div>
+
 
                     <div class="col-md-4 mb-3">
 
@@ -179,5 +227,38 @@
         </div>
 
     </form>
+
+    @push('scripts')
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const accessTypeSelect = document.getElementById('access_type');
+            const userAssignmentSection = document.getElementById('user-assignment-section');
+            const userSearch = document.getElementById('userSearch');
+
+            function toggleUserAssignment() {
+                if (accessTypeSelect.value === 'pbj_only') {
+                    userAssignmentSection.style.display = 'block';
+                } else {
+                    userAssignmentSection.style.display = 'none';
+                }
+            }
+
+            // Search/Filter functionality
+            userSearch.addEventListener('input', function(e) {
+                const filter = e.target.value.toLowerCase();
+                document.querySelectorAll('.form-check').forEach(function(item) {
+                    const text = item.textContent.toLowerCase();
+                    item.style.display = text.includes(filter) ? '' : 'none';
+                });
+            });
+
+            // Initial check
+            toggleUserAssignment();
+
+            // Listen for changes
+            accessTypeSelect.addEventListener('change', toggleUserAssignment);
+        });
+    </script>
+    @endpush
 
 @endsection

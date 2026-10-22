@@ -16,10 +16,10 @@
         </div>
 
         @can('applications.view')
-        <a href="{{ route('admin.applications.index') }}" class="btn btn-outline-primary btn-sm">
-            <i class="bi bi-gear me-1"></i>
-            Kelola Aplikasi
-        </a>
+            <a href="{{ route('admin.applications.index') }}" class="btn btn-outline-primary btn-sm">
+                <i class="bi bi-gear me-1"></i>
+                Kelola Aplikasi
+            </a>
         @endcan
     </div>
 
@@ -46,12 +46,15 @@
                                 </h6>
 
                                 @if ($app->status)
-                                    <span class="badge bg-success-subtle text-success border border-success-subtle flex-shrink-0">
-                                        <i class="bi bi-circle-fill me-1" style="font-size: .45rem; vertical-align: middle;"></i>
+                                    <span
+                                        class="badge bg-success-subtle text-success border border-success-subtle flex-shrink-0">
+                                        <i class="bi bi-circle-fill me-1"
+                                            style="font-size: .45rem; vertical-align: middle;"></i>
                                         Aktif
                                     </span>
                                 @else
-                                    <span class="badge bg-warning-subtle text-warning-emphasis border border-warning-subtle flex-shrink-0">
+                                    <span
+                                        class="badge bg-warning-subtle text-warning-emphasis border border-warning-subtle flex-shrink-0">
                                         Non-aktif
                                     </span>
                                 @endif
@@ -61,22 +64,43 @@
                                 <code class="small text-break">{{ $app->slug }}</code>
                             </p>
 
+                            {{-- Jenis akses aplikasi --}}
+                            <div class="mb-3">
+                                @if ($app->access_type === 'pbj_only')
+                                    <span class="badge bg-primary-subtle text-primary border border-primary-subtle">
+                                        <i class="bi bi-shield-lock-fill me-1"></i>
+                                        Khusus Pegawai PBJ
+                                    </span>
+                                @elseif ($app->access_type === 'all_users')
+                                    <span class="badge bg-info-subtle text-info-emphasis border border-info-subtle">
+                                        <i class="bi bi-people-fill me-1"></i>
+                                        Semua Pengguna SSO
+                                    </span>
+                                @else
+                                    <span class="badge bg-secondary-subtle text-secondary border border-secondary-subtle">
+                                        <i class="bi bi-question-circle me-1"></i>
+                                        Jenis akses belum diatur
+                                    </span>
+                                @endif
+                            </div>
+
                             @if (!empty($app->description))
                                 <p class="text-muted small mb-3 flex-grow-1">
                                     {{ $app->description }}
                                 </p>
                             @else
-                                <p class="text-muted small mb-3 flex-grow-1 fst-italic">Tanpa deskripsi.</p>
+                                <p class="text-muted small mb-3 flex-grow-1 fst-italic">
+                                    Tanpa deskripsi.
+                                </p>
                             @endif
 
                             <p class="text-muted small mb-3 text-break">
-                                <i class="bi bi-link-45deg me-1"></i>{{ $app->redirect_uri }}
+                                <i class="bi bi-link-45deg me-1"></i>
+                                {{ $app->redirect_uri }}
                             </p>
 
                             @if ($app->status && $app->login_url)
-                                <a href="{{ $app->login_url }}"
-                                    target="_blank"
-                                    rel="noopener"
+                                <a href="{{ $app->login_url }}" target="_blank" rel="noopener"
                                     class="btn btn-primary w-100">
                                     <i class="bi bi-box-arrow-up-right me-1"></i>
                                     Buka Aplikasi
@@ -86,6 +110,7 @@
                                     <i class="bi bi-pause-circle me-1"></i>
                                     Tidak tersedia
                                 </button>
+
                                 @if (!$app->status)
                                     <small class="text-warning-emphasis d-block text-center mt-2">
                                         Aplikasi ini sedang dinonaktifkan.
@@ -96,7 +121,7 @@
                     </div>
                 </div>
             @endforeach
-        </div>
+        </div>        
 
         <div class="alert alert-info small mt-4 mb-0">
             <i class="bi bi-info-circle me-1"></i>

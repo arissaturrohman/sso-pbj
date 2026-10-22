@@ -16,6 +16,9 @@
     {{-- Bootstrap --}}
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
 
+    {{-- favicon --}}
+    <link rel="icon" href="{{ asset('img/logo.png') }}" type="image/x-icon">
+
     {{-- Bootstrap Icons --}}
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
 
@@ -310,6 +313,303 @@
                 padding: 0.4rem 0.6rem;
             }
         }
+
+        /* Popup logout */
+        .logout-swal-popup {
+            width: 420px !important;
+            padding: 32px 28px 26px !important;
+            border-radius: 22px !important;
+            background: #ffffff !important;
+            box-shadow: 0 20px 60px rgba(15, 23, 42, 0.16) !important;
+            font-family: inherit;
+        }
+
+        /* Judul */
+        .logout-swal-title {
+            color: #172b4d !important;
+            font-size: 23px !important;
+            font-weight: 750 !important;
+            letter-spacing: -0.5px;
+            margin-top: 8px !important;
+        }
+
+        /* Isi popup */
+        .logout-swal-html {
+            margin: 10px 0 24px !important;
+        }
+
+        .logout-swal-content p {
+            color: #64748b;
+            font-size: 14px;
+            line-height: 1.7;
+            margin: 0 0 18px;
+        }
+
+        /* Catatan keamanan */
+        .logout-swal-note {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            padding: 12px 14px;
+            background: #f1f5f9;
+            border: 1px solid #e2e8f0;
+            border-radius: 12px;
+            color: #475569;
+            font-size: 12px;
+        }
+
+        .logout-swal-note i {
+            color: #0d6efd;
+            font-size: 16px;
+        }
+
+        /* Area tombol */
+        .logout-swal-actions {
+            display: flex !important;
+            gap: 10px !important;
+            width: 100%;
+            margin: 0 !important;
+        }
+
+        .logout-swal-confirm,
+        .logout-swal-cancel {
+            flex: 1;
+            min-height: 44px;
+            padding: 11px 16px !important;
+            border: none !important;
+            border-radius: 11px !important;
+            font-size: 13px !important;
+            font-weight: 650 !important;
+            transition: all 0.2s ease !important;
+            cursor: pointer;
+        }
+
+        .logout-swal-confirm {
+            background: #dc3545 !important;
+            color: #ffffff !important;
+            box-shadow: 0 4px 10px rgba(220, 53, 69, 0.18);
+        }
+
+        .logout-swal-confirm:hover {
+            background: #bb2d3b !important;
+            transform: translateY(-1px);
+        }
+
+        .logout-swal-cancel {
+            background: #f1f5f9 !important;
+            color: #475569 !important;
+        }
+
+        .logout-swal-cancel:hover {
+            background: #e2e8f0 !important;
+        }
+
+        /* Tombol tutup */
+        .logout-swal-close {
+            color: #94a3b8 !important;
+        }
+
+        .logout-swal-close:hover {
+            color: #334155 !important;
+        }
+
+        /* Tampilan HP */
+        @media (max-width: 480px) {
+            .logout-swal-popup {
+                width: calc(100% - 24px) !important;
+                padding: 28px 20px 22px !important;
+                border-radius: 18px !important;
+            }
+
+            .logout-swal-title {
+                font-size: 21px !important;
+            }
+
+            .logout-swal-actions {
+                flex-direction: column-reverse !important;
+            }
+
+            .logout-swal-confirm,
+            .logout-swal-cancel {
+                width: 100%;
+            }
+        }
+
+        /* Pesan validasi saat klik di luar modal */
+        .logout-swal-popup .swal2-validation-message {
+            margin: 18px 0 8px !important;
+            padding: 12px 16px !important;
+            border-radius: 10px !important;
+            background: #fff7ed !important;
+            border: 1px solid #fed7aa !important;
+            color: #9a3412 !important;
+            font-size: 13px !important;
+            line-height: 1.6 !important;
+            text-align: center !important;
+            box-sizing: border-box;
+        }
+
+        /* Beri jarak tambahan antara pesan dan tombol */
+        .logout-swal-popup .logout-swal-actions {
+            margin-top: 12px !important;
+        }
+
+        /* Tampilan HP */
+        @media (max-width: 480px) {
+            .logout-swal-popup .swal2-validation-message {
+                margin: 12px 0 8px !important;
+                padding: 12px 16px !important;
+                border-radius: 8px !important;
+            }
+        }
+
+        /* Tampilan HP */
+        @media (max-width: 480px) {
+            .logout-swal-popup .logout-swal-actions {
+                margin-top: 8px !important;
+            }
+        }
+
+        /* ===== FOOTER CONTENT ===== */
+        .main-footer {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 8px;
+            padding: 16px 0;
+            margin-top: 24px;
+            border-top: 1px solid var(--brand-border);
+            color: var(--brand-muted);
+            font-size: 12px;
+        }
+
+        .main-footer strong {
+            color: var(--brand-primary-dark);
+            font-weight: 600;
+        }
+
+        .main-footer a {
+            color: var(--brand-primary);
+            text-decoration: none;
+        }
+
+        .main-footer a:hover {
+            color: var(--brand-primary-dark);
+        }
+
+        /* Footer sidebar tetap minimalis */
+        .sidebar-footer {
+            margin: 16px 15px 10px;
+            padding-top: 12px;
+            border-top: 1px solid var(--brand-border);
+        }
+
+        .sidebar-footer-title {
+            color: var(--brand-text);
+            font-size: 12px;
+            font-weight: 600;
+            margin-bottom: 3px;
+        }
+
+        .sidebar-footer small {
+            color: var(--brand-muted);
+            font-size: 11px;
+        }
+
+        @media (max-width: 767.98px) {
+            .main-footer {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 5px;
+            }
+        }
+
+
+        .sidebar-session {
+            margin: 16px 15px 12px;
+            padding: 14px 12px;
+            border: 1px solid var(--brand-border);
+            border-radius: 12px;
+            background: var(--brand-surface);
+        }
+
+        .sidebar-session-header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .sidebar-session-icon {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            width: 38px;
+            height: 38px;
+            border-radius: 10px;
+            background: var(--brand-primary-light);
+            color: var(--brand-primary);
+            font-size: 20px;
+        }
+
+        .sidebar-session-info {
+            min-width: 0;
+        }
+
+        .sidebar-session-title {
+            color: var(--brand-text);
+            font-size: 12px;
+            font-weight: 700;
+        }
+
+        .sidebar-session-status {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            margin-top: 4px;
+            color: var(--brand-muted);
+            font-size: 11px;
+        }
+
+        .status-dot {
+            width: 7px;
+            height: 7px;
+            flex-shrink: 0;
+            border-radius: 50%;
+            background: #16a34a;
+        }
+
+        .sidebar-session-divider {
+            margin: 12px 0;
+            border-top: 1px solid var(--brand-border);
+        }
+
+        .sidebar-session-login {
+            display: flex;
+            align-items: flex-start;
+            gap: 9px;
+            color: var(--brand-muted);
+        }
+
+        .sidebar-session-login>i {
+            margin-top: 2px;
+            font-size: 15px;
+        }
+
+        .sidebar-session-label {
+            margin-bottom: 4px;
+            font-size: 10px;
+        }
+
+        .sidebar-session-time {
+            color: var(--brand-text);
+            font-size: 11px;
+            font-weight: 600;
+            line-height: 1.5;
+            overflow-wrap: anywhere;
+        }
     </style>
 
     @stack('styles')
@@ -359,18 +659,14 @@
                     </div>
 
                     {{-- Tombol Logout --}}
-                    <form action="{{ route('logout') }}" method="POST" class="mb-0">
-
+                    <form action="{{ route('logout') }}" method="POST" class="mb-0" id="logout-form">
                         @csrf
 
-                        <button type="submit" class="btn btn-logout btn-sm d-flex align-items-center gap-1">
-
+                        <button type="button" class="btn btn-logout btn-sm d-flex align-items-center gap-1"
+                            id="btn-logout">
                             <i class="bi bi-box-arrow-right"></i>
-
                             <span class="d-none d-sm-inline">Logout</span>
-
                         </button>
-
                     </form>
 
                 </div>
@@ -418,13 +714,13 @@
                     </nav>
 
                     @can('applications.view')
-                    <div class="mt-4 mb-3">
+                        <div class="mt-4 mb-3">
 
-                        <small class="text-uppercase text-muted fw-bold">
-                            Administrasi
-                        </small>
+                            <small class="text-uppercase text-muted fw-bold">
+                                Administrasi
+                            </small>
 
-                    </div>
+                        </div>
                     @endcan
 
                     <nav class="nav flex-column">
@@ -464,19 +760,45 @@
 
                     </nav>
 
+                    <hr>
 
-                    <div class="mt-4 pt-3 border-top">
+                    <div class="sidebar-session">
+                        <div class="sidebar-session-header">
+                            <div class="sidebar-session-icon">
+                                <i class="bi bi-shield-check"></i>
+                            </div>
 
-                        <small class="text-muted">
-                            SSO PBJ Demak
-                        </small>
+                            <div class="sidebar-session-info">
+                                <div class="sidebar-session-title">
+                                    Sesi Pengguna
+                                </div>
 
-                        <br>
+                                <div class="sidebar-session-status">
+                                    <span class="status-dot"></span>
+                                    Sesi aktif
+                                </div>
+                            </div>
+                        </div>
 
-                        <small class="text-muted">
-                            Laravel {{ Illuminate\Foundation\Application::VERSION }}
-                        </small>
+                        <div class="sidebar-session-divider"></div>
 
+                        <div class="sidebar-session-login">
+                            <i class="bi bi-clock-history"></i>
+
+                            <div>
+                                <div class="sidebar-session-label">
+                                    Login terakhir
+                                </div>
+
+                                <div class="sidebar-session-time">
+                                    @php
+                                        $lastLogin = auth()->user()?->last_login_at;
+                                    @endphp
+
+                                    {{ $lastLogin ? $lastLogin->timezone(config('app.timezone'))->format('d/m/Y H:i') . ' WIB' : 'Belum tersedia' }}
+                                </div>
+                            </div>
+                        </div>
                     </div>
 
                 </aside>
@@ -485,9 +807,24 @@
                 {{-- Content --}}
                 <main class="col-md-9 col-lg-10 content-wrapper">
 
-                    <div class="p-3 p-md-4">
+                    <div class="p-3 p-md-4 d-flex flex-column h-100">
 
-                        @yield('content')
+                        <div class="flex-grow-1">
+                            @yield('content')
+                        </div>
+
+                        <footer class="main-footer">
+                            <div>
+                                &copy; {{ date('Y') }}
+                                <strong>Tim IT PBJ Demak</strong>
+                            </div>
+
+                            <div>
+                                SSO PBJ Demak
+                                <span class="mx-1">·</span>
+                                Build v1.0.1
+                            </div>
+                        </footer>
 
                     </div>
 
@@ -504,8 +841,64 @@
 
     {{-- Bootstrap --}}
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
     @stack('scripts')
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const btnLogout = document.getElementById('btn-logout');
+            const logoutForm = document.getElementById('logout-form');
+
+            if (btnLogout && logoutForm) {
+                btnLogout.addEventListener('click', function() {
+                    Swal.fire({
+                        title: 'Keluar dari Aplikasi?',
+                        html: `
+                            <div class="logout-swal-content">
+                                <p>Apakah Anda yakin ingin mengakhiri sesi Anda saat ini?</p>
+                                <div class="logout-swal-note">
+                                    <i class="bi bi-shield-lock-fill"></i>
+                                    <span>Sesi Anda akan diakhiri dengan aman.</span>
+                                </div>
+                            </div>
+                        `,
+                        icon: undefined,
+                        showCancelButton: true,
+                        showCloseButton: false,
+                        confirmButtonText: '<i class="bi bi-box-arrow-right"></i> Ya, Logout',
+                        cancelButtonText: '<i class="bi bi-arrow-left"></i> Kembali',
+                        buttonsStyling: false,
+                        customClass: {
+                            popup: 'logout-swal-popup',
+                            title: 'logout-swal-title',
+                            htmlContainer: 'logout-swal-html',
+                            actions: 'logout-swal-actions',
+                            confirmButton: 'logout-swal-confirm',
+                            cancelButton: 'logout-swal-cancel',
+                            closeButton: 'logout-swal-close'
+                        },
+                        showCloseButton: false,
+                        reverseButtons: true,
+                        focusCancel: true,
+                        allowOutsideClick: () => {
+                            Swal.showValidationMessage(
+                                'Silakan gunakan tombol "Kembali" untuk membatalkan logout.'
+                            );
+                            return false;
+                        },
+                        allowEscapeKey: false,
+                        heightAuto: false
+                    }).then((result) => {
+                        if (result.isConfirmed) {
+                            document.getElementById('logout-form').submit();
+                        }
+                    });
+
+                });
+            }
+        });
+    </script>
 
 </body>
 

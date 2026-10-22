@@ -3,6 +3,8 @@
 namespace App\Providers;
 
 use App\Models\Passport\Client;
+use Illuminate\Auth\Events\Login;
+use Illuminate\Support\Facades\Event;
 use Illuminate\Pagination\Paginator;
 use Illuminate\Support\ServiceProvider;
 use Laravel\Passport\Passport;
@@ -23,6 +25,14 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        Event::listen(Login::class, function (Login $event) {
+            $event->user
+                ->forceFill([
+                    'last_login_at' => now(),
+                ])
+                ->saveQuietly();
+        });
+
         Paginator::useBootstrapFive();
 
         Passport::useClientModel(

@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Models\User;
 use Illuminate\Database\Eloquent\Model;
 use Laravel\Passport\Client;
 
@@ -14,6 +15,7 @@ class Application extends Model
         'passport_client_id',
         'redirect_uri',
         'status',
+        'access_type',
     ];
 
     protected $hidden = [
@@ -83,5 +85,18 @@ class Application extends Model
         }
 
         return $scheme . '://' . $auth . $parts['host'] . $port . $path;
+    }
+
+    public function users()
+    {
+        return $this->belongsToMany(
+            User::class,
+            'application_user'
+        )
+            ->withPivot([
+                'role',
+                'granted_by',
+            ])
+            ->withTimestamps();
     }
 }

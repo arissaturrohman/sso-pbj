@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\Application;
+use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
@@ -33,7 +34,9 @@ class ApplicationController extends Controller
 
     public function create()
     {
-        return view('admin.applications.create');
+        $users = User::where('status', true)->orderBy('name')->get();
+        $application = null;
+        return view('admin.applications.create', compact('application', 'users'));
     }
 
     public function store(Request $request)
@@ -43,6 +46,17 @@ class ApplicationController extends Controller
             'slug'         => ['required', 'string', 'max:100', 'alpha_dash', 'unique:applications,slug'],
             'description'  => ['nullable', 'string'],
             'redirect_uri' => ['required', 'url'],
+            'access_type' => [
+                'required',
+                'in:all_users,pbj_only',
+            ],
+            'assigned_users' => [
+                'nullable',
+                'array',
+            ],
+            'assigned_users.*' => [
+                'exists:users,id',
+            ],
         ]);
 
         DB::transaction(function () use ($validated) {
@@ -67,14 +81,22 @@ class ApplicationController extends Controller
                 enableDeviceFlow: false,
             );
 
-            Application::create([
+            $application = Application::create([
                 'name'               => $validated['name'],
                 'slug'               => $validated['slug'],
                 'description'        => $validated['description'] ?? null,
                 'passport_client_id' => $client->getKey(),
                 'redirect_uri'       => $validated['redirect_uri'],
+                'access_type'        => $validated['access_type'],
                 'status'             => true,
             ]);
+
+            if ($validated['access_type'] === 'pbj_only' && isset($validated['assigned_users'])) {
+                $application->users()->syncWithPivotValues(
+                    $validated['assigned_users'],
+                    ['granted_by' => auth()->id()],
+                );
+            }
         });
 
         return redirect()
@@ -85,11 +107,13 @@ class ApplicationController extends Controller
     public function edit(Application $application)
     {
         // Preload relasi passportClient agar tidak N+1 query di view
-        $application->load('passportClient');
+        $application->load('passportClient', 'users');
+
+        $users = User::where('status', true)->orderBy('name')->get();
 
         return view(
             'admin.applications.edit',
-            compact('application')
+            compact('application', 'users')
         );
     }
 
@@ -127,16 +151,32 @@ class ApplicationController extends Controller
                 'required',
                 'boolean',
             ],
+
+            'access_type' => [
+                'required',
+                'in:all_users,pbj_only',
+            ],
+
+            'assigned_users' => [
+                'nullable',
+                'array',
+            ],
+
+            'assigned_users.*' => [
+                'exists:users,id',
+            ],
         ]);
 
         DB::transaction(function () use ($validated, $application) {
 
+            $oldAccessType = $application->access_type;
             $application->update([
                 'name' => $validated['name'],
                 'slug' => $validated['slug'],
                 'description' => $validated['description'] ?? null,
                 'redirect_uri' => $validated['redirect_uri'],
                 'status' => $validated['status'],
+                'access_type' => $validated['access_type'],
             ]);
 
             /*
@@ -156,6 +196,29 @@ class ApplicationController extends Controller
                     $validated['name'],
                     [$validated['redirect_uri']],
                 );
+            }
+
+            /*
+            |--------------------------------------------------------------------------
+            | Sync assigned users for pbj_only access type
+            |--------------------------------------------------------------------------
+            |
+            | Untuk aplikasi dengan access_type pbj_only, sinkronkan
+            | daftar pengguna yang diberi akses melalui tabel
+            | application_user.
+            |
+            */
+
+            if ($validated['access_type'] === 'pbj_only') {
+                $assignedUsers = $validated['assigned_users'] ?? [];
+
+                $application->users()->syncWithPivotValues(
+                    $assignedUsers,
+                    ['granted_by' => auth()->id()]
+                );
+            } elseif ($oldAccessType === 'pbj_only') {
+                // Jika berubah dari pbj_only ke all_users, hapus semua assignment
+                $application->users()->detach();
             }
         });
 

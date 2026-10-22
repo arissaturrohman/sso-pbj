@@ -107,6 +107,7 @@
                             <th>Aplikasi</th>
                             <th>Slug</th>
                             <th>Client ID</th>
+                            <th>Jenis Akses</th>
                             <th>Status</th>
                             <th width="240" class="text-center">
                                 Aksi
@@ -153,6 +154,18 @@
                                     @else
                                         <span class="text-danger">
                                             Belum terhubung
+                                        </span>
+                                    @endif
+                                </td>
+
+                                <td>
+                                    @if ($application->access_type === 'pbj_only')
+                                        <span class="badge bg-warning text-dark">
+                                            Khusus Pegawai PBJ
+                                        </span>
+                                    @else
+                                        <span class="badge bg-success">
+                                            Semua Pengguna SSO
                                         </span>
                                     @endif
                                 </td>

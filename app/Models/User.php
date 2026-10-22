@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Models\Application;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Passport\Contracts\OAuthenticatable;
@@ -31,6 +32,21 @@ class User extends Authenticatable implements OAuthenticatable
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
             'status' => 'boolean',
+
+            'last_login_at' => 'datetime',
         ];
+    }
+
+    public function applications()
+    {
+        return $this->belongsToMany(
+            Application::class,
+            'application_user'
+        )
+            ->withPivot([
+                'role',
+                'granted_by',
+            ])
+            ->withTimestamps();
     }
 }
