@@ -697,6 +697,13 @@
 
                     <nav class="nav flex-column">
 
+                        <a href="{{ route('dashboard') }}"
+                            class="nav-link
+                                {{ request()->routeIs('dashboard') ? 'active' : '' }}">
+                            <i class="bi bi-speedometer2"></i>
+                            Dashboard
+                        </a>
+
                         <a href="{{ route('sso.apps') }}"
                             class="nav-link
                                 {{ request()->routeIs('sso.apps') ? 'active' : '' }}">
@@ -704,11 +711,11 @@
                             Aplikasi Saya
                         </a>
 
-                        <a href="{{ route('dashboard') }}"
+                        <a href="{{ route('account.password.edit') }}"
                             class="nav-link
-                                {{ request()->routeIs('dashboard') ? 'active' : '' }}">
-                            <i class="bi bi-speedometer2"></i>
-                            Dashboard
+                                {{ request()->routeIs('account.password.*') ? 'active' : '' }}">
+                            <i class="bi bi-key"></i>
+                            Ganti Password
                         </a>
 
                     </nav>

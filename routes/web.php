@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Admin\ApplicationController;
+use App\Http\Controllers\Admin\ChangePasswordController;
 use App\Http\Controllers\Admin\RoleController;
 use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\Auth\LoginController;
@@ -41,6 +42,21 @@ Route::middleware('auth')->group(function () {
         'logout'
     ])->name('logout');
 });
+
+Route::middleware('auth')
+    ->prefix('account')
+    ->name('account.')
+    ->group(function () {
+        Route::get('/password', [
+            ChangePasswordController::class,
+            'edit',
+        ])->name('password.edit');
+
+        Route::put('/password', [
+            ChangePasswordController::class,
+            'update',
+        ])->name('password.update');
+    });
 
 
 
