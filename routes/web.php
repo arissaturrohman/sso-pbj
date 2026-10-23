@@ -11,6 +11,8 @@ use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Str;
 
+Route::redirect('/', '/login');
+
 Route::middleware('guest')->group(function () {
 
     Route::get('/login', [
