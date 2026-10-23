@@ -24,7 +24,7 @@ Route::middleware('guest')->group(function () {
     ])->name('login.process');
 });
 
-Route::middleware('auth')->group(function () {
+Route::middleware([ 'auth', 'password.changed'])->group(function () {
 
     Route::get('/dashboard', [
         DashboardController::class,

@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Middleware\CheckSsoApplicationAccess;
+use App\Http\Middleware\EnsurePasswordChanged;
 use App\Http\Middleware\ValidateOAuthClient;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
@@ -22,6 +23,7 @@ return Application::configure(basePath: dirname(__DIR__))
             'permission' => PermissionMiddleware::class,
             'role_or_permission' => RoleOrPermissionMiddleware::class,
             'oauth.client' => ValidateOAuthClient::class,
+            'password.changed' => EnsurePasswordChanged::class,
         ]);
         $middleware->web(
             append: [

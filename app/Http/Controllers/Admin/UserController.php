@@ -4,8 +4,11 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\User;
+use App\Services\FonnteService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
 use Spatie\Permission\Models\Role;
 
@@ -37,12 +40,10 @@ class UserController extends Controller
     public function create()
     {
         if (auth()->user()->hasRole('super-admin')) {
-
             $roles = Role::where('guard_name', 'web')
                 ->orderBy('name')
                 ->get();
         } else {
-
             $roles = Role::where('guard_name', 'web')
                 ->where('name', '!=', 'super-admin')
                 ->orderBy('name')
@@ -54,15 +55,16 @@ class UserController extends Controller
 
     /**
      * Simpan user baru.
+     * Password dibuat otomatis dan dikirim melalui WhatsApp Fonnte.
      */
-    public function store(Request $request)
+    public function store(Request $request, FonnteService $fonnte)
     {
         $allowedRoles = auth()->user()->hasRole('super-admin')
             ? Role::where('guard_name', 'web')->pluck('name')->toArray()
             : Role::where('guard_name', 'web')
-            ->where('name', '!=', 'super-admin')
-            ->pluck('name')
-            ->toArray();
+                ->where('name', '!=', 'super-admin')
+                ->pluck('name')
+                ->toArray();
 
         $validated = $request->validate([
             'name' => [
@@ -85,11 +87,11 @@ class UserController extends Controller
                 'unique:users,email',
             ],
 
-            'password' => [
+            'no_hp' => [
                 'required',
                 'string',
-                'min:8',
-                'confirmed',
+                'max:20',
+                'regex:/^[0-9+\-\s()]+$/',
             ],
 
             'role' => [
@@ -101,21 +103,123 @@ class UserController extends Controller
                 'required',
                 'boolean',
             ],
+        ], [
+            'name.required' => 'Nama lengkap wajib diisi.',
+            'nip.required' => 'NIP wajib diisi.',
+            'nip.unique' => 'NIP sudah terdaftar.',
+            'email.required' => 'Email wajib diisi.',
+            'email.email' => 'Format email tidak valid.',
+            'email.unique' => 'Email sudah terdaftar.',
+            'no_hp.required' => 'Nomor HP/WhatsApp wajib diisi.',
+            'no_hp.regex' => 'Format nomor HP tidak valid.',
+            'role.required' => 'Role wajib dipilih.',
+            'role.in' => 'Role yang dipilih tidak diizinkan.',
+            'status.required' => 'Status akun wajib dipilih.',
         ]);
 
+        /*
+        |--------------------------------------------------------------------------
+        | Normalisasi nomor HP
+        |--------------------------------------------------------------------------
+        | Contoh:
+        | 081234567890  menjadi 6281234567890
+        | +6281234567890 menjadi 6281234567890
+        */
+        $noHp = preg_replace('/[\s\-()]+/', '', $validated['no_hp']);
+
+        if (str_starts_with($noHp, '+')) {
+            $noHp = substr($noHp, 1);
+        }
+
+        if (str_starts_with($noHp, '0')) {
+            $noHp = '62' . substr($noHp, 1);
+        }
+
+        if (!preg_match('/^62[0-9]{8,13}$/', $noHp)) {
+            return back()
+                ->withInput($request->except([
+                    'password',
+                    'password_confirmation',
+                ]))
+                ->withErrors([
+                    'no_hp' => 'Gunakan nomor WhatsApp Indonesia yang valid, misalnya 081234567890.',
+                ]);
+        }
+
+        /*
+        |--------------------------------------------------------------------------
+        | Generate password otomatis
+        |--------------------------------------------------------------------------
+        */
+        $password = Str::password(14);
+
+        /*
+        |--------------------------------------------------------------------------
+        | Simpan user
+        |--------------------------------------------------------------------------
+        */
         $user = User::create([
             'name' => $validated['name'],
             'nip' => $validated['nip'],
             'email' => $validated['email'],
-            'password' => Hash::make($validated['password']),
+            'no_hp' => $noHp,
+            'password' => Hash::make($password),
+            'must_change_password' => true,
             'status' => $validated['status'],
         ]);
 
+        /*
+        |--------------------------------------------------------------------------
+        | Tetapkan role sesuai pilihan admin
+        |--------------------------------------------------------------------------
+        */
         $user->assignRole($validated['role']);
 
-        return redirect()
-            ->route('admin.users.index')
-            ->with('success', 'User berhasil ditambahkan.');
+        /*
+        |--------------------------------------------------------------------------
+        | Kirim informasi akun melalui WhatsApp
+        |--------------------------------------------------------------------------
+        */
+        $message = implode("\n", [
+            '*SSO PBJ DEMAK*',
+            '',
+            'Yth. ' . $user->name . ',',
+            'Akun SSO Anda telah dibuat oleh administrator.',
+            '',
+            'Nama: ' . $user->name,
+            'NIP: ' . $user->nip,
+            'Email: ' . $user->email,
+            'Password awal: ' . $password,
+            '',
+            'Silakan gunakan informasi tersebut untuk login ke SSO PBJ Demak.',
+            'Demi keamanan, segera ganti password setelah login.',
+            '',
+            'Jangan membagikan password ini kepada orang lain.',
+            'Tim IT PBJ Demak',
+        ]);
+
+        try {
+            $fonnte->sendMessage($noHp, $message);
+
+            return redirect()
+                ->route('admin.users.index')
+                ->with(
+                    'success',
+                    'User berhasil dibuat. Notifikasi WhatsApp telah diterima Fonnte untuk diproses.'
+                );
+        } catch (\Throwable $e) {
+            Log::error('Gagal mengirim password awal melalui Fonnte.', [
+                'user_id' => $user->id,
+                'exception' => $e->getMessage(),
+            ]);
+
+            return redirect()
+                ->route('admin.users.index')
+                ->with(
+                    'warning',
+                    'User berhasil dibuat, tetapi pengiriman WhatsApp gagal. Gunakan fitur reset password untuk membuat password baru dan mengirimkannya kembali.'
+                );
+        }
     }
 
     /**
@@ -123,12 +227,6 @@ class UserController extends Controller
      */
     public function edit(User $user)
     {
-        /*
-        |--------------------------------------------------------------------------
-        | Admin tidak boleh mengedit Super Admin
-        |--------------------------------------------------------------------------
-        */
-
         if (
             $user->hasRole('super-admin') &&
             !auth()->user()->hasRole('super-admin')
@@ -136,14 +234,11 @@ class UserController extends Controller
             abort(403, 'Anda tidak memiliki izin untuk mengedit Super Admin.');
         }
 
-
         if (auth()->user()->hasRole('super-admin')) {
-
             $roles = Role::where('guard_name', 'web')
                 ->orderBy('name')
                 ->get();
         } else {
-
             $roles = Role::where('guard_name', 'web')
                 ->where('name', '!=', 'super-admin')
                 ->orderBy('name')
@@ -168,9 +263,9 @@ class UserController extends Controller
         $allowedRoles = auth()->user()->hasRole('super-admin')
             ? Role::where('guard_name', 'web')->pluck('name')->toArray()
             : Role::where('guard_name', 'web')
-            ->where('name', '!=', 'super-admin')
-            ->pluck('name')
-            ->toArray();
+                ->where('name', '!=', 'super-admin')
+                ->pluck('name')
+                ->toArray();
 
         $validated = $request->validate([
             'name' => ['required', 'string', 'max:255'],
@@ -242,9 +337,9 @@ class UserController extends Controller
     }
 
     /**
-     * Reset password user.
+     * Reset password user dan kirim password baru melalui WhatsApp.
      */
-    public function resetPassword(User $user)
+    public function resetPassword(User $user, FonnteService $fonnte)
     {
         if (
             $user->hasRole('super-admin') &&
@@ -256,14 +351,59 @@ class UserController extends Controller
             );
         }
 
+        if (empty($user->no_hp)) {
+            return back()->with(
+                'error',
+                'User belum memiliki nomor WhatsApp. Silakan lengkapi nomor HP terlebih dahulu.'
+            );
+        }
+
+        /*
+        |--------------------------------------------------------------------------
+        | Generate password baru
+        |--------------------------------------------------------------------------
+        */
+        $password = Str::password(14);
+
         $user->update([
-            'password' => Hash::make('password123'),
+            'password' => Hash::make($password),
+            'must_change_password' => true,
         ]);
 
-        return back()->with(
-            'success',
-            'Password berhasil direset menjadi password123.'
-        );
+        $message = implode("\n", [
+            '*RESET PASSWORD SSO PBJ DEMAK*',
+            '',
+            'Yth. ' . $user->name . ',',
+            'Password akun SSO Anda telah direset oleh administrator.',
+            '',
+            'NIP: ' . $user->nip,
+            'Password baru: ' . $password,
+            '',
+            'Silakan login menggunakan password baru.',
+            'Demi keamanan, segera ganti password setelah login.',
+            '',
+            'Jangan membagikan password ini kepada orang lain.',
+            'Tim IT PBJ Demak',
+        ]);
+
+        try {
+            $fonnte->sendMessage($user->no_hp, $message);
+
+            return back()->with(
+                'success',
+                'Password berhasil direset dan notifikasi telah diterima Fonnte untuk diproses.'
+            );
+        } catch (\Throwable $e) {
+            Log::error('Gagal mengirim password reset melalui Fonnte.', [
+                'user_id' => $user->id,
+                'exception' => $e->getMessage(),
+            ]);
+
+            return back()->with(
+                'warning',
+                'Password sudah berubah, tetapi WhatsApp gagal dikirim. Lakukan reset password kembali setelah memperbaiki koneksi Fonnte.'
+            );
+        }
     }
 
     /**

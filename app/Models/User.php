@@ -16,8 +16,10 @@ class User extends Authenticatable implements OAuthenticatable
     protected $fillable = [
         'name',
         'nip',
+        'no_hp',
         'email',
         'password',
+        'must_change_password',
         'status',
     ];
 
@@ -31,6 +33,7 @@ class User extends Authenticatable implements OAuthenticatable
         return [
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
+            'must_change_password' => 'boolean',
             'status' => 'boolean',
 
             'last_login_at' => 'datetime',

@@ -21,24 +21,25 @@
                 <div class="card-body">
 
                     @if($errors->any())
-
                         <div class="alert alert-danger">
+                            <div class="fw-semibold mb-1">
+                                Data belum berhasil disimpan.
+                            </div>
 
                             <ul class="mb-0">
-
                                 @foreach($errors->all() as $error)
-
-                                    <li>
-                                        {{ $error }}
-                                    </li>
-
+                                    <li>{{ $error }}</li>
                                 @endforeach
-
                             </ul>
-
                         </div>
-
                     @endif
+
+                    <div class="alert alert-info">
+                        <i class="bi bi-info-circle me-1"></i>
+                        Password akan dibuat otomatis setelah Anda mengeklik
+                        <strong>Simpan User</strong> dan dikirimkan ke nomor
+                        WhatsApp yang didaftarkan.
+                    </div>
 
                     <form
                         action="{{ route('admin.users.store') }}"
@@ -48,109 +49,111 @@
                         @csrf
 
                         <div class="mb-3">
-
-                            <label class="form-label">
+                            <label for="name" class="form-label">
                                 Nama Lengkap
                             </label>
 
                             <input
                                 type="text"
                                 name="name"
-                                class="form-control"
+                                id="name"
+                                class="form-control @error('name') is-invalid @enderror"
                                 value="{{ old('name') }}"
+                                maxlength="255"
+                                autocomplete="name"
                                 required
                             >
 
+                            @error('name')
+                                <div class="invalid-feedback">
+                                    {{ $message }}
+                                </div>
+                            @enderror
                         </div>
 
                         <div class="mb-3">
-
-                            <label class="form-label">
+                            <label for="nip" class="form-label">
                                 NIP
                             </label>
 
                             <input
                                 type="text"
                                 name="nip"
-                                class="form-control"
+                                id="nip"
+                                class="form-control @error('nip') is-invalid @enderror"
                                 value="{{ old('nip') }}"
                                 maxlength="30"
                                 required
                             >
 
+                            @error('nip')
+                                <div class="invalid-feedback">
+                                    {{ $message }}
+                                </div>
+                            @enderror
                         </div>
 
                         <div class="mb-3">
-
-                            <label class="form-label">
+                            <label for="email" class="form-label">
                                 Email
                             </label>
 
                             <input
                                 type="email"
                                 name="email"
-                                class="form-control"
+                                id="email"
+                                class="form-control @error('email') is-invalid @enderror"
                                 value="{{ old('email') }}"
+                                maxlength="255"
+                                autocomplete="email"
                                 required
                             >
 
-                        </div>
-
-                        <div class="row">
-
-                            <div class="col-md-6">
-
-                                <div class="mb-3">
-
-                                    <label class="form-label">
-                                        Password
-                                    </label>
-
-                                    <input
-                                        type="password"
-                                        name="password"
-                                        class="form-control"
-                                        required
-                                    >
-
-                                    <small class="text-muted">
-                                        Minimal 8 karakter.
-                                    </small>
-
+                            @error('email')
+                                <div class="invalid-feedback">
+                                    {{ $message }}
                                 </div>
-
-                            </div>
-
-                            <div class="col-md-6">
-
-                                <div class="mb-3">
-
-                                    <label class="form-label">
-                                        Konfirmasi Password
-                                    </label>
-
-                                    <input
-                                        type="password"
-                                        name="password_confirmation"
-                                        class="form-control"
-                                        required
-                                    >
-
-                                </div>
-
-                            </div>
-
+                            @enderror
                         </div>
 
                         <div class="mb-3">
+                            <label for="no_hp" class="form-label">
+                                Nomor HP / WhatsApp
+                            </label>
 
-                            <label class="form-label">
+                            <input
+                                type="tel"
+                                name="no_hp"
+                                id="no_hp"
+                                class="form-control @error('no_hp') is-invalid @enderror"
+                                value="{{ old('no_hp') }}"
+                                placeholder="Contoh: 081234567890"
+                                maxlength="20"
+                                autocomplete="tel"
+                                required
+                            >
+
+                            @error('no_hp')
+                                <div class="invalid-feedback">
+                                    {{ $message }}
+                                </div>
+                            @enderror
+
+                            <small class="text-muted">
+                                Gunakan nomor WhatsApp aktif agar password
+                                awal dapat dikirimkan.
+                            </small>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="role" class="form-label">
                                 Role
                             </label>
 
                             <select
                                 name="role"
-                                class="form-select"
+                                id="role"
+                                class="form-select @error('role') is-invalid @enderror"
                                 required
                             >
 
@@ -159,18 +162,21 @@
                                 </option>
 
                                 @foreach($roles as $role)
-
                                     <option
                                         value="{{ $role->name }}"
                                         @selected(old('role') === $role->name)
                                     >
                                         {{ $role->name }}
                                     </option>
-
                                 @endforeach
 
                             </select>
 
+                            @error('role')
+                                <div class="invalid-feedback">
+                                    {{ $message }}
+                                </div>
+                            @enderror
                         </div>
 
                         <div class="mb-4">
@@ -188,6 +194,7 @@
                                     class="form-check-input"
                                     id="statusAktif"
                                     @checked(old('status', '1') == '1')
+                                    required
                                 >
 
                                 <label
@@ -221,19 +228,22 @@
 
                         </div>
 
-                        <div class="d-flex gap-2">
+                        <div class="d-flex flex-wrap gap-2">
 
                             <a
                                 href="{{ route('admin.users.index') }}"
-                                class="btn btn-secondary"
+                                class="btn btn-outline-secondary"
                             >
+                                <i class="bi bi-arrow-left me-1"></i>
                                 Kembali
                             </a>
 
                             <button
                                 type="submit"
                                 class="btn btn-primary"
+                                id="btnSimpanUser"
                             >
+                                <i class="bi bi-person-plus me-1"></i>
                                 Simpan User
                             </button>
 

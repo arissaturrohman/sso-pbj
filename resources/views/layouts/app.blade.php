@@ -610,6 +610,116 @@
             line-height: 1.5;
             overflow-wrap: anywhere;
         }
+
+        /* ===== HAMBURGER TOGGLE BUTTON (dalam navbar) ===== */
+        .navbar .btn-hamburger {
+            background-color: rgba(255, 255, 255, 0.15);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            color: #fff;
+            border-radius: 8px;
+            padding: 0.4rem 0.6rem;
+            font-size: 1.1rem;
+            line-height: 1;
+            transition: all 0.2s ease;
+            display: none;
+            /* default hidden, tampil di mobile */
+        }
+
+        .navbar .btn-hamburger:hover,
+        .navbar .btn-hamburger:focus {
+            background-color: rgba(255, 255, 255, 0.28);
+            color: #fff;
+            border-color: rgba(255, 255, 255, 0.5);
+        }
+
+        /* ===== SIDEBAR WRAPPER (desktop default) ===== */
+        @media (max-width: 767.98px) {
+
+            /* Tampilkan tombol hamburger di mobile */
+            .navbar .btn-hamburger {
+                display: inline-flex;
+                align-items: center;
+                justify-content: center;
+            }
+
+            /* Sembunyikan sidebar kolom; sidebar ditampilkan via offcanvas */
+            .sidebar-col {
+                display: none !important;
+            }
+        }
+
+        /* ===== SIDEBAR OFFCANVAS (mobile) ===== */
+        .sidebar-offcanvas {
+            width: 280px !important;
+            background: #ffffff;
+        }
+
+        .sidebar-offcanvas .offcanvas-header {
+            background-color: var(--brand-primary);
+            color: #fff;
+            padding: 14px 16px;
+        }
+
+        .sidebar-offcanvas .offcanvas-title {
+            font-weight: 700;
+            font-size: 1rem;
+            letter-spacing: 0.5px;
+        }
+
+        .sidebar-offcanvas .offcanvas-body {
+            padding: 16px;
+        }
+
+        /* Style nav-link di offcanvas, sama dengan sidebar desktop */
+        .sidebar-offcanvas .nav-link {
+            color: var(--brand-text);
+            border-radius: 10px;
+            margin-bottom: 4px;
+            padding: 10px 14px;
+            font-size: 0.925rem;
+            transition: all 0.2s ease;
+        }
+
+        .sidebar-offcanvas .nav-link i {
+            width: 22px;
+            color: var(--brand-muted);
+            transition: color 0.2s ease;
+        }
+
+        .sidebar-offcanvas .nav-link:hover {
+            background-color: var(--brand-primary-light);
+            color: var(--brand-primary-dark);
+        }
+
+        .sidebar-offcanvas .nav-link:hover i {
+            color: var(--brand-primary);
+        }
+
+        .sidebar-offcanvas .nav-link.active {
+            background-color: var(--brand-primary);
+            color: #fff;
+            box-shadow: 0 4px 12px rgba(59, 110, 165, 0.25);
+        }
+
+        .sidebar-offcanvas .nav-link.active i {
+            color: #fff;
+        }
+
+        .sidebar-offcanvas .text-uppercase {
+            color: var(--brand-muted) !important;
+            font-size: 0.75rem;
+            letter-spacing: 0.5px;
+        }
+
+        .sidebar-offcanvas hr {
+            border-color: var(--brand-border);
+            opacity: 1;
+        }
+
+        /* Backdrop offcanvas */
+        .offcanvas-backdrop.show {
+            opacity: 0.5;
+        }
     </style>
 
     @stack('styles')
@@ -622,6 +732,14 @@
     <nav class="navbar navbar-expand navbar-dark shadow-sm">
 
         <div class="container-fluid">
+
+            {{-- Tombol Hamburger (mobile only) --}}
+            @auth
+                <button class="btn btn-hamburger me-2" type="button" data-bs-toggle="offcanvas"
+                    data-bs-target="#sidebarOffcanvas" aria-controls="sidebarOffcanvas" aria-label="Buka menu">
+                    <i class="bi bi-list"></i>
+                </button>
+            @endauth
 
             {{-- Brand --}}
             <a href="{{ auth()->check() ? route('dashboard') : route('login') }}" class="navbar-brand fw-bold mb-0">
@@ -677,6 +795,104 @@
 
     </nav>
 
+    @auth
+        {{-- ===== OFFCANVAS SIDEBAR (MOBILE) ===== --}}
+        <div class="offcanvas offcanvas-start sidebar-offcanvas" tabindex="-1" id="sidebarOffcanvas"
+            aria-labelledby="sidebarOffcanvasLabel">
+
+            <div class="offcanvas-header">
+                <h5 class="offcanvas-title" id="sidebarOffcanvasLabel">
+                    <i class="bi bi-shield-lock-fill me-1"></i> Menu
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="offcanvas"
+                    aria-label="Tutup"></button>
+            </div>
+
+            <div class="offcanvas-body">
+
+                <div class="mb-3">
+                    <small class="text-uppercase fw-bold">Menu Utama</small>
+                </div>
+
+                <nav class="nav flex-column">
+                    <a href="{{ route('dashboard') }}"
+                        class="nav-link {{ request()->routeIs('dashboard') ? 'active' : '' }}">
+                        <i class="bi bi-speedometer2"></i> Dashboard
+                    </a>
+
+                    <a href="{{ route('sso.apps') }}"
+                        class="nav-link {{ request()->routeIs('sso.apps') ? 'active' : '' }}">
+                        <i class="bi bi-grid-3x3-gap me-1"></i> Aplikasi Saya
+                    </a>
+
+                    <a href="{{ route('account.password.edit') }}"
+                        class="nav-link {{ request()->routeIs('account.password.*') ? 'active' : '' }}">
+                        <i class="bi bi-key"></i> Ganti Password
+                    </a>
+                </nav>
+
+                @can('applications.view')
+                    <div class="mt-4 mb-3">
+                        <small class="text-uppercase fw-bold">Administrasi</small>
+                    </div>
+                @endcan
+
+                <nav class="nav flex-column">
+                    @can('users.view')
+                        <a href="{{ route('admin.users.index') }}"
+                            class="nav-link {{ request()->routeIs('admin.users.*') ? 'active' : '' }}">
+                            <i class="bi bi-people"></i> Manajemen User
+                        </a>
+                    @endcan
+
+                    @can('roles.view')
+                        <a href="{{ route('admin.roles.index') }}"
+                            class="nav-link {{ request()->routeIs('admin.roles.*') ? 'active' : '' }}">
+                            <i class="bi bi-shield-lock"></i> Role & Permission
+                        </a>
+                    @endcan
+
+                    @can('applications.view')
+                        <a href="{{ route('admin.applications.index') }}"
+                            class="nav-link {{ request()->routeIs('admin.applications.*') ? 'active' : '' }}">
+                            <i class="bi bi-grid"></i> Aplikasi SSO
+                        </a>
+                    @endcan
+                </nav>
+
+                <hr>
+
+                <div class="sidebar-session">
+                    <div class="sidebar-session-header">
+                        <div class="sidebar-session-icon">
+                            <i class="bi bi-shield-check"></i>
+                        </div>
+                        <div class="sidebar-session-info">
+                            <div class="sidebar-session-title">Sesi Pengguna</div>
+                            <div class="sidebar-session-status">
+                                <span class="status-dot"></span> Sesi aktif
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="sidebar-session-divider"></div>
+
+                    <div class="sidebar-session-login">
+                        <i class="bi bi-clock-history"></i>
+                        <div>
+                            <div class="sidebar-session-label">Login terakhir</div>
+                            <div class="sidebar-session-time">
+                                @php $lastLogin = auth()->user()?->last_login_at; @endphp
+                                {{ $lastLogin ? $lastLogin->timezone(config('app.timezone'))->format('d/m/Y H:i') . ' WIB' : 'Belum tersedia' }}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    @endauth
+
 
     @auth
 
@@ -685,7 +901,7 @@
             <div class="row">
 
                 {{-- Sidebar --}}
-                <aside class="col-md-3 col-lg-2 sidebar p-3">
+                <aside class="col-md-3 col-lg-2 sidebar p-3 sidebar-col">
 
                     <div class="mb-3">
 
@@ -902,6 +1118,18 @@
                         }
                     });
 
+                });
+            }
+        });
+
+        document.addEventListener('DOMContentLoaded', function() {
+            const offcanvasEl = document.getElementById('sidebarOffcanvas');
+            if (offcanvasEl) {
+                offcanvasEl.querySelectorAll('a.nav-link').forEach(function(link) {
+                    link.addEventListener('click', function() {
+                        const oc = bootstrap.Offcanvas.getInstance(offcanvasEl);
+                        if (oc) oc.hide();
+                    });
                 });
             }
         });
