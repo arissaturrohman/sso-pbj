@@ -102,6 +102,22 @@
                         <div class="mb-3">
 
                             <label class="form-label">
+                                No HP / Whatsapp
+                            </label>
+
+                            <input
+                                type="text"
+                                name="no_hp"
+                                class="form-control"
+                                value="{{ old('no_hp', $user->no_hp) }}"
+                                required
+                            >
+
+                        </div>
+
+                        <div class="mb-3">
+
+                            <label class="form-label">
                                 Role
                             </label>
 
